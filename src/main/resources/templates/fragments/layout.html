@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:fragment="head(title)">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title th:text="${title} + ' — App'">App</title>
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+
+
+<aside th:fragment="sidebar" class="sidebar">
+
+    <div class="sidebar-brand">
+        <div class="brand-logo">
+            <div class="brand-icon">⬡</div>
+            <div>
+                <div class="brand-name">AppAdmin</div>
+                <div class="brand-version">v1.0.0</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="sidebar-nav">
+        <span class="nav-section-label">Principal</span>
+
+        <a th:href="@{/dashboard}" th:classappend="${activePage == 'dashboard'} ? 'active'" class="nav-item">
+            <span class="nav-icon">▦</span>
+            Dashboard
+        </a>
+
+        <a th:href="@{/usuarios}" th:classappend="${activePage == 'usuarios'} ? 'active'" class="nav-item">
+            <span class="nav-icon">◎</span>
+            Usuarios
+            <span class="nav-badge" th:if="${totalUsuarios != null}" th:text="${totalUsuarios}"></span>
+        </a>
+
+        <a th:href="@{/admin/roles}" sec:authorize="hasRole('ADMIN')"
+            th:classappend="${activePage == 'roles'} ? 'active'" class="nav-item">
+            <span class="nav-icon">◈</span>
+            Roles
+        </a>
+
+        <a th:href="@{/admin/auditoria}" sec:authorize="hasRole('ADMIN')"
+            th:classappend="${activePage == 'auditoria'} ? 'active'" class="nav-item">
+            <span class="nav-icon">◷</span>
+            Auditoría
+        </a>
+
+        <a th:href="@{/perfil}" th:classappend="${activePage == 'perfil'} ? 'active'" class="nav-item">
+            <span class="nav-icon">◉</span>
+            Mi perfil
+        </a>
+
+        <a th:href="@{/configuracion}" th:classappend="${activePage == 'configuracion'} ? 'active'" class="nav-item">
+            <span class="nav-icon">◌</span>
+            Configuración
+        </a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-card">
+            <div class="user-avatar" th:text="${#strings.substring(#authentication.name, 0, 1).toUpperCase()}">A</div>
+            <div class="user-info">
+                <div class="user-name" th:text="${#authentication.name}">admin</div>
+                <div class="user-role" th:text="${#authentication.authorities.iterator().next().authority}">ROLE_ADMIN
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post" style="display:inline">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                <button type="submit" class="logout-btn" title="Cerrar sesión">⎋</button>
+            </form>
+        </div>
+    </div>
+</aside>
+
+
+<header th:fragment="topbar(title, breadcrumb)" class="topbar">
+    <div>
+        <div class="page-title" th:text="${title}">Dashboard</div>
+        <div class="page-breadcrumb" th:text="${breadcrumb}">Inicio / Dashboard</div>
+    </div>
+    <div class="topbar-actions">
+        <div class="date-badge" id="topbar-date"></div>
+        <button class="topbar-btn" title="Notificaciones">
+            🔔
+            <span class="notif-dot"></span>
+        </button>
+    </div>
+</header>
+
+<th:block th:fragment="scripts">
+    <script>
+        const el = document.getElementById('topbar-date');
+        if (el) {
+            el.textContent = new Date().toLocaleDateString('es-MX', {
+                weekday: 'short', day: '2-digit', month: 'short'
+            });
+        }
+    </script>
+</th:block>
+
+</html>
