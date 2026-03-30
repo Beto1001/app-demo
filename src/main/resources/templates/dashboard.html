@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+
+<body>
+
+    <th:block th:replace="~{fragments/layout :: sidebar}"></th:block>
+
+    <div class="main-content">
+
+        <th:block th:replace="~{fragments/layout :: topbar('Dashboard', 'Inicio / Dashboard')}"></th:block>
+
+        <div class="page-body">
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Total usuarios</span>
+                        <span class="stat-icon green">◎</span>
+                    </div>
+                    <div class="stat-value" th:text="${stats?.totalUsuarios ?: '24'}">24</div>
+                    <div class="stat-delta up">↑ 12% este mes</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Usuarios activos</span>
+                        <span class="stat-icon blue">◉</span>
+                    </div>
+                    <div class="stat-value" th:text="${stats?.usuariosActivos ?: '18'}">18</div>
+                    <div class="stat-delta up">↑ 8% esta semana</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Administradores</span>
+                        <span class="stat-icon orange">◈</span>
+                    </div>
+                    <div class="stat-value" th:text="${stats?.totalAdmins ?: '3'}">3</div>
+                    <div class="stat-delta">Sin cambios</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-header">
+                        <span class="stat-label">Inactivos</span>
+                        <span class="stat-icon red">◌</span>
+                    </div>
+                    <div class="stat-value" th:text="${stats?.usuariosInactivos ?: '6'}">6</div>
+                    <div class="stat-delta down">↓ 3 este mes</div>
+                </div>
+
+            </div>
+
+            <div class="chart-card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Registros por mes</div>
+                        <div class="card-subtitle">Nuevos usuarios en los últimos 6 meses</div>
+                    </div>
+                    <div class="chart-legend">
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background:#2d6a4f"></span>Usuarios
+                        </span>
+                        <span class="legend-item">
+                            <span class="legend-dot" style="background:#1e6091"></span>Activos
+                        </span>
+                    </div>
+                </div>
+                <div class="chart-wrapper">
+                    <canvas id="registrosChart"></canvas>
+                </div>
+            </div>
+
+            <div class="table-card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">Usuarios recientes</div>
+                        <div class="card-subtitle">Últimos registros en el sistema</div>
+                    </div>
+                    <div class="table-search">
+                        🔍
+                        <input type="text" id="searchInput" placeholder="Buscar usuario..." />
+                    </div>
+                </div>
+
+                <table class="data-table" id="usersTable">
+                    <thead>
+                        <tr>
+                            <th>Usuario</th>
+                            <th>Rol</th>
+                            <th>Estado</th>
+                            <th>Creado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="user : ${usuarios}" th:if="${usuarios != null}">
+                            <td>
+                                <div class="user-cell">
+                                    <div class="table-avatar"
+                                        th:text="${#strings.substring(user.username,0,1).toUpperCase()}">A</div>
+                                    <div>
+                                        <div class="table-name" th:text="${user.username}">admin</div>
+                                        <div class="table-email" th:text="${user.email}">admin@app.com</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <th:block th:each="rol : ${user.roles}">
+                                    <span th:classappend="${rol.name == 'ROLE_ADMIN'} ? 'badge-admin' : 'badge-user'"
+                                        class="badge" th:text="${rol.name.replace('ROLE_','')}">ADMIN</span>
+                                </th:block>
+                            </td>
+                            <td>
+                                <span th:if="${user.enabled}" class="badge badge-active">Activo</span>
+                                <span th:unless="${user.enabled}" class="badge badge-inactive">Inactivo</span>
+                            </td>
+                            <td class="mono" th:text="${#temporals.format(user.createdAt,'dd/MM/yyyy')}">01/01/2025</td>
+                            <td>
+                                <div class="table-actions">
+                                    <button class="action-btn" title="Ver">👁</button>
+                                    <button class="action-btn" title="Editar">✎</button>
+                                    <button class="action-btn danger" title="Eliminar">✕</button>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <th:block th:if="${usuarios == null}">
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="table-avatar">A</div>
+                                        <div>
+                                            <div class="table-name">admin</div>
+                                            <div class="table-email">admin@app.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-admin">ADMIN</span></td>
+                                <td><span class="badge badge-active">Activo</span></td>
+                                <td class="mono">29/03/2026</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="action-btn">👁</button>
+                                        <button class="action-btn">✎</button>
+                                        <button class="action-btn danger">✕</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="table-avatar" style="background:#e0f0ff;color:#1e6091">J</div>
+                                        <div>
+                                            <div class="table-name">jlopez</div>
+                                            <div class="table-email">jlopez@app.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-user">USER</span></td>
+                                <td><span class="badge badge-active">Activo</span></td>
+                                <td class="mono">15/02/2026</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="action-btn">👁</button>
+                                        <button class="action-btn">✎</button>
+                                        <button class="action-btn danger">✕</button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div class="user-cell">
+                                        <div class="table-avatar" style="background:#fef3c7;color:#d97706">M</div>
+                                        <div>
+                                            <div class="table-name">mgarcia</div>
+                                            <div class="table-email">mgarcia@app.com</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td><span class="badge badge-user">USER</span></td>
+                                <td><span class="badge badge-inactive">Inactivo</span></td>
+                                <td class="mono">03/01/2026</td>
+                                <td>
+                                    <div class="table-actions">
+                                        <button class="action-btn">👁</button>
+                                        <button class="action-btn">✎</button>
+                                        <button class="action-btn danger">✕</button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </th:block>
+                    </tbody>
+                </table>
+
+                <div class="table-footer">
+                    <span class="table-info">Mostrando 1–3 de 24 usuarios</span>
+                    <div class="pagination">
+                        <button class="page-btn">‹</button>
+                        <button class="page-btn active">1</button>
+                        <button class="page-btn">2</button>
+                        <button class="page-btn">3</button>
+                        <button class="page-btn">›</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <th:block th:replace="~{fragments/layout :: scripts}"></th:block>
+
+    <script>
+        const ctx = document.getElementById('registrosChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['Oct', 'Nov', 'Dic', 'Ene', 'Feb', 'Mar'],
+                datasets: [
+                    {
+                        label: 'Nuevos usuarios',
+                        data: [4, 7, 3, 9, 5, 8],
+                        backgroundColor: 'rgba(45,106,79,.15)',
+                        borderColor: '#2d6a4f',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    },
+                    {
+                        label: 'Activos',
+                        data: [3, 6, 2, 8, 4, 7],
+                        backgroundColor: 'rgba(30,96,145,.1)',
+                        borderColor: '#1e6091',
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        borderSkipped: false,
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#fff',
+                        borderColor: '#e8e8e4',
+                        borderWidth: 1,
+                        titleColor: '#1a1a18',
+                        bodyColor: '#6b6b67',
+                        padding: 10,
+                        cornerRadius: 8,
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#a8a8a4', font: { family: 'DM Mono', size: 11 } }
+                    },
+                    y: {
+                        grid: { color: '#f0f0ec', drawBorder: false },
+                        ticks: { color: '#a8a8a4', font: { family: 'DM Mono', size: 11 } },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        document.getElementById('searchInput')?.addEventListener('input', function () {
+            const q = this.value.toLowerCase();
+            document.querySelectorAll('#usersTable tbody tr').forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(q) ? '' : 'none';
+            });
+        });
+    </script>
+
+</body>
+
+</html>
